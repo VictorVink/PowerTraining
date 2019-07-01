@@ -1,0 +1,183 @@
+===================
+Calculated Columns
+===============
+Row Amount =
+Sales[Quantity] * Sales[Net Price]
+
+
+Age Customers =
+YEAR ( TODAY () ) - YEAR ( Customer[Birth Date] )
+
+Age Customers =
+IF (
+    ISBLANK ( Customer[Birth Date] ),
+    BLANK (),
+    YEAR ( TODAY () ) - YEAR ( Customer[Birth Date] )
+)
+
+Label met IF = 
+IF (
+    'Product'[Unit Price] < 20,
+    "Laag",
+    IF ( 'Product'[Unit Price] > 200, "Hoog", "Middel" )
+)
+
+=======================
+Aggregation Functions
+======================
+
+SUM = SUM (Sales[Net Price])
+
+
+SUM =
+SUM ( Sales[Net Price] ) / SUM ( Sales[Quantity] )
+
+====================
+The X aggregation
+====================
+
+TotalSales :=
+SUMX ( Sales, Sales[Quantity] * Sales[Net Price] )
+
+AVG =
+AVERAGEX ( Sales, Sales[Quantity] * Sales[Net Price] )
+
+====================
+Table Functions
+====================
+
+EVALUATE
+'Product'
+
+
+EVALUATE
+FILTER ( 'Product', 'Product'[Color] = "red" )
+
+
+EVALUATE
+FILTER (
+    'Product',
+    'Product'[Color] = "red"
+        && 'Product'[Manufacturer] = "tailspin toys"
+)
+
+
+EVALUATE
+FILTER (
+    'Product',
+    AND ( 'Product'[Color] = "red", 'Product'[Unit Price] > 1000 )
+)
+
+
+EVALUATE
+FILTER (
+    'Product',
+    OR ( 'Product'[Color] = "red", 'Product'[Unit Price] > 2000 )
+)
+
+Filter --PowerBI
+
+FilterDemo =
+SUMX (
+    FILTER (
+        'Product',
+        AND ( 'Product'[Color] = "red", 'Product'[Unit Price] < 1000 )
+    ),
+    'Product'[UnitCost] * 1
+)
+
+
+
+===============
+Vlookup - vertikaal zoeken
+===============
+Product Category =
+RELATED ( 'Product Category'[Category] )
+
+===============
+CALCULATE
+===============
+SalesOfAudio =
+CALCULATE (
+    SUMX ( Sales, Sales[Quantity] * Sales[Net Price] ),
+    'Product'[Product Category] = "Audio"
+)
+
+
+
+SalesPct =
+DIVIDE ( [TotalSales], CALCULATE ( [TotalSales], ALL ( 'Product' ) ) )
+
+
+SalesPctTotal =
+DIVIDE ( [TotalSales], CALCULATE ( [TotalSales], ALLSELECTED () ) )
+
+
+NA Time Intelligence !!!!!!!!!!!!!!!!!!!
+
+SalesPct =
+DIVIDE (
+    [TotalSales],
+    CALCULATE ( [TotalSales], ALL ( 'Product' ), VALUES ( 'Date'[Year] ) )
+)
+
+
+
+SalesPctTotal =
+DIVIDE (
+    [TotalSales],
+    CALCULATE ( [TotalSales], ALLSELECTED (), VALUES ( 'Date'[Year] ) )
+)
+
+==================
+Time Intelligence
+==================
+
+
+Date =
+CALENDAR (
+    DATE ( YEAR ( MIN ( Sales[Order Date] ) ), 1, 1 ),
+    DATE ( YEAR ( MAX ( Sales[Order Date] ) ), 12, 31 )
+)
+
+
+Year = YEAR('Date'[Date])
+Quarter = CONCATENATE("Q",ROUNDUP(MONTH([Date])/3,0))
+Month = MONTH('Date'[Date])
+Month_name = FORMAT('Date'[Date], "MMMM")
+Week = WEEKNUM('Date'[Date])
+Day_name = FORMAT('Date'[Date], "DDDD")
+
+
+
+TotalSalesLastYear =
+CALCULATE (
+    SUMX ( Sales, Sales[Quantity] * Sales[Net Price] ),
+    SAMEPERIODLASTYEAR ( 'Date'[Date] )
+)
+
+
+Sales YTD =
+CALCULATE ( [TotalSales], DATESYTD ( 'Date'[Date] ) )
+
+Sales previous YTD =
+CALCULATE ( [TotalSales], SAMEPERIODLASTYEAR ( DATESYTD ( 'Date'[Date] ) ) )
+
+
+Sales YTD = 
+CALCULATE ( [TotalSales], DATESYTD ( 'Date'[Date], "1/6") )
+
+===============
+USE RELATIONSHIP
+===============
+
+SalesByOrderDate =
+CALCULATE ( SUM ( Sales[Unit Cost] ), Sales[Order Date] )
+
+
+
+SalesByDueDate =
+CALCULATE (
+    SUM ( Sales[Unit Cost] ),
+    USERELATIONSHIP ( Sales[Due Date], 'Date'[Date] )
+)
